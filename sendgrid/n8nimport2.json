@@ -1,0 +1,59 @@
+{
+  "meta": {
+    "instanceId": "cb9c144f2050b3f9b30bf379399398f9061341e3665eb2faf2b1092a42b38b14"
+  },
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "dbc0068a-67e5-4341-b1e3-195b70d205f8",
+      "name": "When clicking \"Execute Workflow\"",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [840, 460]
+    },
+    {
+      "parameters": { "fieldToSplitOut": "data", "options": {} },
+      "id": "796edecc-4827-4c64-8bbe-8bd067b87675",
+      "name": "Split out data",
+      "type": "n8n-nodes-base.itemLists",
+      "typeVersion": 1,
+      "position": [1280, 460]
+    },
+    {
+      "parameters": {
+        "url": "https://reqres.in/api/users",
+        "options": { "response": { "response": { "responseFormat": "json" } } }
+      },
+      "id": "d9b26217-de8e-4147-88e9-bc0add856bec",
+      "name": "API request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [1060, 460]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "collection": "default",
+        "fields": "id,email,first_name,last_name",
+        "options": {}
+      },
+      "id": "55335a80-1213-4d61-99c3-be0a485e83d2",
+      "name": "MongoDB",
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1,
+      "position": [1500, 460],
+      "credentials": { "mongoDb": { "id": 7, "name": "MongoDB account" } }
+    }
+  ],
+  "connections": {
+    "When clicking \"Execute Workflow\"": {
+      "main": [[{ "node": "API request", "type": "main", "index": 0 }]]
+    },
+    "Split out data": {
+      "main": [[{ "node": "MongoDB", "type": "main", "index": 0 }]]
+    },
+    "API request": {
+      "main": [[{ "node": "Split out data", "type": "main", "index": 0 }]]
+    }
+  }
+}

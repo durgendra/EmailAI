@@ -1,0 +1,15 @@
+node_modules/
+**/node_modules/
+build/
+dist/
+coverage/
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+gitleaks-report.json
+PUBLICATION_REVIEW.md
+README.draft.md
+README.draft.*
+*.draft.md

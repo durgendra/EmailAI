@@ -1,0 +1,221 @@
+{
+  "meta": {
+    "instanceId": "1acbb2b2f2034026eb24795d142b09240bf5a1867e1895cf529f4be1b8c5146e"
+  },
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "1225e8b0-2e80-4349-91d8-5140d5fbc9bc",
+      "name": "When clicking ‘Test workflow’",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [-1000, 180]
+    },
+    {
+      "parameters": {
+        "resource": "video",
+        "limit": 1,
+        "filters": { "channelId": "={{ $json.channel_id }}" },
+        "options": { "order": "date" }
+      },
+      "id": "f82d7817-aec1-4f5a-923e-b541e1a8bee8",
+      "name": "YouTube",
+      "type": "n8n-nodes-base.youTube",
+      "typeVersion": 1,
+      "position": [-300, 180],
+      "credentials": {
+        "youTubeOAuth2Api": {
+          "id": "TilD5eiJusT8LIBD",
+          "name": "YouTube account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "26bc7901-df6c-44e2-a34b-39fb71a6fe78",
+              "name": "discovery_datetime",
+              "value": "={{ $now }}",
+              "type": "string"
+            },
+            {
+              "id": "0c014037-de9e-4b39-9ec6-13e24f826cbb",
+              "name": "discovery_source",
+              "value": "youtube",
+              "type": "string"
+            },
+            {
+              "id": "63c5841e-c9ae-4faf-be24-15eb3329c477",
+              "name": "discovery_type",
+              "value": "video",
+              "type": "string"
+            },
+            {
+              "id": "e041f609-20bd-4e42-9fe7-482ee18fd48b",
+              "name": "discovery_uuid",
+              "value": "=youtube_{{ $json.id.videoId }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "2f47d6c2-2667-4cdc-a649-2efb3f57b624",
+      "name": "Add Discovery Vars",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [-60, 180]
+    },
+    {
+      "parameters": {
+        "collection": "raw_content",
+        "options": { "limit": 1 },
+        "query": "={\"discovery_uuid\": \"{{ $json[\"discovery_uuid\"] }}\"}"
+      },
+      "id": "dd306bd5-6d3e-4acb-9e51-21dbe121190f",
+      "name": "MongoDB1",
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.1,
+      "position": [160, 180],
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": { "id": "GqgTenzPkRdv71uc", "name": "MongoDB account 2" }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "d5f5b962-85ca-4d52-98ea-116f6cc75c1e",
+      "name": "No Operation, do nothing",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [820, 0]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "collection": "raw_content",
+        "fields": "={{Object.keys($node[\"Add Discovery Vars\"].json).join(',')}}",
+        "options": {}
+      },
+      "id": "b6328627-ce98-4cdd-9435-8449a693384f",
+      "name": "MongoDB",
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.1,
+      "position": [820, 260],
+      "credentials": {
+        "mongoDb": { "id": "GqgTenzPkRdv71uc", "name": "MongoDB account 2" }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a1086aa2-d60a-4bc5-b40c-c5998c4bf970",
+              "leftValue": "={{ $json }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "105f266f-f68e-4e72-9334-a41f9ec60d7a",
+      "name": "If Exists",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [400, 180]
+    },
+    {
+      "parameters": { "jsCode": "return $('Add Discovery Vars').first()" },
+      "id": "cd155063-590e-4bd5-bc2e-db64d1fe590f",
+      "name": "Prep Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [640, 260]
+    },
+    {
+      "parameters": {
+        "collection": "source_youtube_channels",
+        "options": { "limit": 200 }
+      },
+      "id": "6443d5cc-9e57-4270-9750-ea8bcdb9fb7f",
+      "name": "MongoDB2",
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.1,
+      "position": [-780, 180],
+      "notesInFlow": true,
+      "credentials": {
+        "mongoDb": { "id": "GqgTenzPkRdv71uc", "name": "MongoDB account 2" }
+      },
+      "notes": "Get Channel List"
+    },
+    {
+      "parameters": { "options": {} },
+      "id": "d53b2075-8252-4226-9028-93008c31d6ae",
+      "name": "Loop Over Items",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [-560, 180]
+    },
+    {
+      "parameters": {},
+      "id": "d001b623-88e4-49fd-b3cd-f05d0d9b13c4",
+      "name": "Merge",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [1120, 440]
+    }
+  ],
+  "connections": {
+    "When clicking ‘Test workflow’": {
+      "main": [[{ "node": "MongoDB2", "type": "main", "index": 0 }]]
+    },
+    "YouTube": {
+      "main": [[{ "node": "Add Discovery Vars", "type": "main", "index": 0 }]]
+    },
+    "Add Discovery Vars": {
+      "main": [[{ "node": "MongoDB1", "type": "main", "index": 0 }]]
+    },
+    "MongoDB1": {
+      "main": [[{ "node": "If Exists", "type": "main", "index": 0 }]]
+    },
+    "No Operation, do nothing": {
+      "main": [[{ "node": "Merge", "type": "main", "index": 0 }]]
+    },
+    "MongoDB": { "main": [[{ "node": "Merge", "type": "main", "index": 1 }]] },
+    "If Exists": {
+      "main": [
+        [{ "node": "No Operation, do nothing", "type": "main", "index": 0 }],
+        [{ "node": "Prep Data", "type": "main", "index": 0 }]
+      ]
+    },
+    "Prep Data": {
+      "main": [[{ "node": "MongoDB", "type": "main", "index": 0 }]]
+    },
+    "MongoDB2": {
+      "main": [[{ "node": "Loop Over Items", "type": "main", "index": 0 }]]
+    },
+    "Loop Over Items": {
+      "main": [null, [{ "node": "YouTube", "type": "main", "index": 0 }]]
+    },
+    "Merge": {
+      "main": [[{ "node": "Loop Over Items", "type": "main", "index": 0 }]]
+    }
+  },
+  "pinData": {}
+}
